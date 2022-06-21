@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   StarIcon,
   WatchIcon,
@@ -7,8 +8,9 @@ import {
 } from '../../components/Icons';
 import Link from 'next/link';
 import { projects } from '../../utils/projectsData';
+import { GetStaticPaths, GetStaticProps } from 'next';
 
-function Project({ project }) {
+const Project = ({ project }: any) => {
   const Icon = projectIcons[project.id];
   return (
     <div className="project">
@@ -64,7 +66,7 @@ function Project({ project }) {
               target="_blank"
               rel="noreferrer"
             >
-              <GithubIcon w={24} h={24} />
+              <GithubIcon />
               Learn more...
             </a>
           </div>
@@ -72,17 +74,17 @@ function Project({ project }) {
       </main>
     </div>
   );
-}
+};
 
-export async function getStaticPaths() {
+export const getStaticPaths: GetStaticPaths = () => {
   const paths = projects.map((project) => ({
     params: { path: project.slug },
   }));
 
   return { paths, fallback: false };
-}
+};
 
-export async function getStaticProps({ params }) {
+export const getStaticProps: GetStaticProps = async ({ params }) => {
   const project = projects.find((proj) => proj.slug === params.path);
   const res = await fetch(`https://api.github.com/repos/${project.path}`);
   const data = await res.json();
@@ -90,6 +92,6 @@ export async function getStaticProps({ params }) {
   project.subscribers_count = data.subscribers_count;
   project.stargazers_count = data.stargazers_count;
   return { props: { project } };
-}
+};
 
 export default Project;
