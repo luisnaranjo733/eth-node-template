@@ -107,16 +107,16 @@ resource nodePublicIP 'Microsoft.Network/publicIPAddresses@2021-05-01' = {
   }
 }
 
-resource bastionPublicIp 'Microsoft.Network/publicIpAddresses@2020-05-01' = {
-  name: bastionPublicIPAddressName
-  location: location
-  sku: {
-    name: 'Standard'
-  }
-  properties: {
-    publicIPAllocationMethod: 'Static'
-  }
-}
+// resource bastionPublicIp 'Microsoft.Network/publicIpAddresses@2020-05-01' = {
+//   name: bastionPublicIPAddressName
+//   location: location
+//   sku: {
+//     name: 'Standard'
+//   }
+//   properties: {
+//     publicIPAllocationMethod: 'Static'
+//   }
+// }
 
 resource nsg 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
   name: networkSecurityGroupName
