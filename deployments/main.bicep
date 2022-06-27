@@ -42,9 +42,11 @@ param mainSubnetName string = 'mainSubnet'
 @description('Name of the Network Security Group')
 param networkSecurityGroupName string = 'SecGroupNet'
 
-var publicIPAddressName = '${vmName}PublicIP'
+var nodePublicIPAddressName = '${vmName}PublicIP'
+var bastionPublicIPAddressName = 'bastion${vmName}PublicIP'
 var networkInterfaceName = '${vmName}NetInt'
 var osDiskType = 'Standard_LRS'
+// var bastionSubnetAddressPrefix = '10.1.1.0/26'
 var mainSubnetAddressPrefix = '10.1.0.0/24'
 var vnetAddressPrefix = '10.1.0.0/16'
 var linuxConfiguration = {
@@ -71,6 +73,14 @@ resource vnet 'Microsoft.Network/virtualNetworks@2021-05-01' = {
   }
 }
 
+// resource bastionSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-05-01' = {
+//   parent: vnet
+//   name: 'AzureBastionSubnet'
+//   properties: {
+//     addressPrefix: bastionSubnetAddressPrefix
+//   }
+// }
+
 resource mainSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-05-01' = {
   parent: vnet
   name: mainSubnetName
@@ -81,8 +91,8 @@ resource mainSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-05-01' = {
   }
 }
 
-resource publicIP 'Microsoft.Network/publicIPAddresses@2021-05-01' = {
-  name: publicIPAddressName
+resource nodePublicIP 'Microsoft.Network/publicIPAddresses@2021-05-01' = {
+  name: nodePublicIPAddressName
   location: location
   sku: {
     name: 'Basic'
@@ -94,6 +104,17 @@ resource publicIP 'Microsoft.Network/publicIPAddresses@2021-05-01' = {
       domainNameLabel: dnsLabelPrefix
     }
     idleTimeoutInMinutes: 4
+  }
+}
+
+resource bastionPublicIp 'Microsoft.Network/publicIpAddresses@2020-05-01' = {
+  name: bastionPublicIPAddressName
+  location: location
+  sku: {
+    name: 'Standard'
+  }
+  properties: {
+    publicIPAllocationMethod: 'Static'
   }
 }
 
@@ -185,7 +206,7 @@ resource nic 'Microsoft.Network/networkInterfaces@2021-05-01' = {
           }
           privateIPAllocationMethod: 'Dynamic'
           publicIPAddress: {
-            id: publicIP.id
+            id: nodePublicIP.id
           }
         }
       }
@@ -233,6 +254,30 @@ resource vm 'Microsoft.Compute/virtualMachines@2022-03-01' = {
   }
 }
 
+// resource bastionHost 'Microsoft.Network/bastionHosts@2020-05-01' = {
+//   name: 'bastion-host'
+//   location: location
+//   dependsOn: [
+//     vnet
+//   ]
+//   properties: {
+//     ipConfigurations: [
+//       {
+//         name: 'IpConf'
+//         properties: {
+//           subnet: {
+//             id: bastionSubnet.id
+//           }
+//           publicIPAddress: {
+//             id: bastionPublicIp.id
+//           }
+//         }
+//       }
+//     ]
+//   }
+// }
+
 output adminUsername string = adminUsername
-output hostname string = publicIP.properties.dnsSettings.fqdn
-output sshCommand string = 'ssh -i <private key path> ${adminUsername}@${publicIP.properties.dnsSettings.fqdn}'
+output hostname string = nodePublicIP.properties.dnsSettings.fqdn
+output sshCommand string = 'ssh -i <private key path> ${adminUsername}@${nodePublicIP.properties.dnsSettings.fqdn}'
+// output bastionHost string = bastionPublicIp.properties.ipAddress
