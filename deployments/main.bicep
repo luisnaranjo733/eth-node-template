@@ -7,7 +7,7 @@ param storageName string = 'storage'
 
 param location string = resourceGroup().location
 
-resource virtualNetwork 'Microsoft.Network/virtualNetworks@2019-11-01' = {
+resource virtualNetwork 'Microsoft.Network/virtualNetworks@2021-08-01' = {
   name: 'vnet${guidSuffix}'
   location: location
   properties: {
