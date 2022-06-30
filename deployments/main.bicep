@@ -18,15 +18,6 @@ param adminPasswordOrKey string
 @description('Unique DNS Name for the Public IP used to access the Virtual Machine.')
 param dnsLabelPrefix string = toLower('${vmName}-${uniqueString(resourceGroup().id)}')
 
-@description('The Ubuntu version for the VM. This will pick a fully patched image of this given Ubuntu version.')
-@allowed([
-  '12.04.5-LTS'
-  '14.04.5-LTS'
-  '16.04.0-LTS'
-  '18.04-LTS' 
-])
-param ubuntuOSVersion string = '18.04-LTS'
-
 @description('Location for all resources.')
 param location string = resourceGroup().location
 
@@ -42,8 +33,14 @@ param mainSubnetName string = 'mainSubnet'
 @description('Name of the Network Security Group')
 param networkSecurityGroupName string = 'SecGroupNet'
 
+@description('Port to open for the Ethereum execution client')
+param executionClientPort string = '30303'
+
+@description('Port to open for the Ethereum consensus client')
+param consensusClientPort string = '9000'
+
 var nodePublicIPAddressName = '${vmName}PublicIP'
-var bastionPublicIPAddressName = 'bastion${vmName}PublicIP'
+// var bastionPublicIPAddressName = 'bastion${vmName}PublicIP'
 var networkInterfaceName = '${vmName}NetInt'
 var osDiskType = 'Standard_LRS'
 // var bastionSubnetAddressPrefix = '10.1.1.0/26'
@@ -146,7 +143,7 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
           sourceAddressPrefix: '*'
           sourcePortRange: '*'
           destinationAddressPrefix: '*'
-          destinationPortRange: '30303'
+          destinationPortRange: executionClientPort
         }
       }
       {
@@ -159,7 +156,7 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
           sourceAddressPrefix: '*'
           sourcePortRange: '*'
           destinationAddressPrefix: '*'
-          destinationPortRange: '30303'
+          destinationPortRange: executionClientPort
         }
       }
       {
@@ -172,7 +169,7 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
           sourceAddressPrefix: '*'
           sourcePortRange: '*'
           destinationAddressPrefix: '*'
-          destinationPortRange: '9000'
+          destinationPortRange: consensusClientPort
         }
       }
       {
@@ -185,7 +182,7 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
           sourceAddressPrefix: '*'
           sourcePortRange: '*'
           destinationAddressPrefix: '*'
-          destinationPortRange: '9000'
+          destinationPortRange: consensusClientPort
         }
       }
     ]
@@ -233,8 +230,8 @@ resource vm 'Microsoft.Compute/virtualMachines@2022-03-01' = {
       }
       imageReference: {
         publisher: 'Canonical'
-        offer: 'UbuntuServer'
-        sku: ubuntuOSVersion
+        offer: '0001-com-ubuntu-server-jammy'
+        sku: '22_04-lts-gen2'
         version: 'latest'
       }
     }
